@@ -6,7 +6,7 @@ I am also Business Administrator!  <br />
 🌍 I'm based in Manaus,Amazon, Brazil <br />
 ✉️ You can contact me at guigatvcontato@gmail.com <br />
 🚀 I'm currently focused on learning languages. <br />
-🧠 I'm learning Javascript,Java and Python as programming languages. <br />
+🧠 I'm learning C# and Python as programming languages. <br />
 🤝 I'm open to collaborating on projects that evolves my personal experience. <br />
 ⚡ I love sports and Drones! My favorite sport is Soccer! <br />
 
