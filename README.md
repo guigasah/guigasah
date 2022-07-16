@@ -12,7 +12,8 @@ I am also Business Administrator!  <br />
 
 
 Skills <br />
-Javascript, HTML5, CSS, React, NodeJS...
+C#
+Javascript, HTML5, CSS.
 
 [![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=guigasah)](https://github.com/anuraghazra/github-readme-stats)
 
