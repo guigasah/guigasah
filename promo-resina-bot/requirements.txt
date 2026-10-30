@@ -1,0 +1,4 @@
+requests>=2.31
+Pillow>=10.0
+python-dotenv>=1.0
+anthropic>=1.0  # opcional: só se USE_AI_COPY=true
