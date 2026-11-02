@@ -2,3 +2,4 @@
 *.db
 output/
 __pycache__/
+data/

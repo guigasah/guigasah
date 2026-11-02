@@ -28,6 +28,23 @@ _Resina super bem avaliada (98% positivas) com 44% de desconto._
 https://chat.whatsapp.com/...
 ~~~
 
+## ⚡ Instalação rápida (checklist)
+
+**O que só você pode fazer (precisa do seu login):**
+- [ ] Cadastro de afiliado em <https://portals.aliexpress.com> e criação do Tracking ID (Ferramentas → Tracking ID)
+- [ ] Criação de um app da categoria **Affiliates** em <https://openservice.aliexpress.com>, e esperar a aprovação
+- [ ] Um chip/número de WhatsApp só para o bot, e esse número como **admin** do grupo/canal
+
+**O resto é automático:**
+```bash
+python -m promobot configurar      # pergunta as chaves, cria o .env e testa a API
+docker compose up -d               # sobe o WhatsApp (Evolution API) + o agente
+```
+Abra `http://SEU_SERVIDOR:8080/manager` e entre com a `EVOLUTION_API_KEY` que está no `.env`.
+Crie a instância `promo` e leia o QR code com o celular do bot. Depois rode
+`docker compose run --rm promobot python -m promobot grupos`, copie os IDs para `WHATSAPP_TARGETS`,
+mude `WHATSAPP_PROVIDER=evolution` e rode `docker compose up -d` de novo.
+
 ## 1. Pré-requisitos
 
 1. **Conta de afiliado AliExpress**: cadastre-se em <https://portals.aliexpress.com> e crie um *Tracking ID*.

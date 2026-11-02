@@ -8,6 +8,7 @@ Uso:
       [--titulo T --imagem foto.jpg]         # opcional: sobrescreve o que veio do anúncio
   python -m promobot grupos                  # lista os IDs dos grupos do seu WhatsApp
   python -m promobot demo                    # gera um post de exemplo sem precisar de chaves
+  python -m promobot configurar              # assistente que cria o .env e testa as chaves
   python -m promobot testar-api              # confere se as chaves do AliExpress funcionam
 """
 import argparse
@@ -166,6 +167,7 @@ def main() -> None:
     sub.add_parser("grupos")
     sub.add_parser("demo")
     sub.add_parser("testar-api")
+    sub.add_parser("configurar")
     lk = sub.add_parser("link")
     lk.add_argument("url")
     lk.add_argument("--cupom")
@@ -191,6 +193,21 @@ def main() -> None:
         demo()
     elif args.cmd == "testar-api":
         test_api()
+    elif args.cmd == "configurar":
+        from . import setup_wizard
+        setup_wizard.run()
+        print("Testando as chaves do AliExpress...")
+        import importlib
+        from dotenv import load_dotenv
+        from . import config as config_module
+        load_dotenv(setup_wizard.ENV, override=True)
+        importlib.reload(config_module)
+        globals()["config"] = config_module.config
+        aliexpress.config = config_module.config
+        try:
+            test_api()
+        except SystemExit as e:
+            print(e)
 
 
 if __name__ == "__main__":

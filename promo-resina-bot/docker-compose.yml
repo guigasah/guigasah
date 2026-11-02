@@ -1,0 +1,30 @@
+# Sobe tudo de uma vez: WhatsApp (Evolution API) + agente de promoções.
+#   docker compose up -d
+#   Painel do WhatsApp (ler o QR code): http://SEU_SERVIDOR:8080/manager
+services:
+  evolution:
+    image: atendai/evolution-api:v2.2.3
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY}
+      DATABASE_ENABLED: "false"
+      CACHE_LOCAL_ENABLED: "true"
+    volumes:
+      - evolution_instances:/evolution/instances
+
+  promobot:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      EVOLUTION_URL: http://evolution:8080
+    volumes:
+      - ./data:/app/data
+      - ./assets:/app/assets
+    depends_on:
+      - evolution
+
+volumes:
+  evolution_instances:
