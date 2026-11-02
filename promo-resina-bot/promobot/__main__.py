@@ -8,6 +8,7 @@ Uso:
       [--titulo T --imagem foto.jpg]         # opcional: sobrescreve o que veio do anúncio
   python -m promobot grupos                  # lista os IDs dos grupos do seu WhatsApp
   python -m promobot demo                    # gera um post de exemplo sem precisar de chaves
+  python -m promobot testar-api              # confere se as chaves do AliExpress funcionam
 """
 import argparse
 import re
@@ -127,6 +128,23 @@ def post_link(url: str, coupon: str | None, manual: dict) -> None:
     post(p, coupon)
 
 
+def test_api() -> None:
+    """Confere as chaves do .env fazendo uma busca real, sem postar nada."""
+    missing = [n for n, v in [("ALI_APP_KEY", config.ali_app_key), ("ALI_APP_SECRET", config.ali_app_secret),
+                              ("ALI_TRACKING_ID", config.ali_tracking_id)] if not v]
+    if missing:
+        raise SystemExit(f"Faltando no .env: {', '.join(missing)}")
+    kw = config.keywords[0]
+    try:
+        products = aliexpress.search(kw, page_size=5)
+    except Exception as e:
+        raise SystemExit(f"❌ A API recusou: {e}")
+    print(f"✅ Conectado! {len(products)} resultado(s) para '{kw}':")
+    for p in products:
+        link = "link de afiliado OK" if "s.click" in p.link else "SEM link de afiliado (confira o Tracking ID)"
+        print(f"  R${p.price:.2f} (-{p.discount}%) {p.title[:60]} | {len(p.images)} foto(s) | {link}")
+
+
 def demo() -> None:
     p = Product(
         id="demo",
@@ -147,6 +165,7 @@ def main() -> None:
     sub.add_parser("loop")
     sub.add_parser("grupos")
     sub.add_parser("demo")
+    sub.add_parser("testar-api")
     lk = sub.add_parser("link")
     lk.add_argument("url")
     lk.add_argument("--cupom")
@@ -170,6 +189,8 @@ def main() -> None:
             print(f"{g.get('id')}  {g.get('subject')}")
     elif args.cmd == "demo":
         demo()
+    elif args.cmd == "testar-api":
+        test_api()
 
 
 if __name__ == "__main__":
