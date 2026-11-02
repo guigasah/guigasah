@@ -2,7 +2,7 @@
 import hashlib
 import hmac
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import requests
 
@@ -22,6 +22,7 @@ class Product:
     rating: float
     sales: int
     link: str
+    images: list[str] = field(default_factory=list)  # galeria do anúncio
 
 
 def _sign(params: dict, secret: str) -> str:
@@ -55,6 +56,14 @@ def _num(value, default=0.0) -> float:
         return default
 
 
+def _gallery(p: dict) -> list[str]:
+    main = p.get("product_main_image_url", "")
+    small = (p.get("product_small_image_urls") or {}).get("string") or []
+    if isinstance(small, str):
+        small = [small]
+    return list(dict.fromkeys(u for u in [main, *small] if u))
+
+
 def _to_product(p: dict) -> Product:
     return Product(
         id=str(p["product_id"]),
@@ -66,6 +75,7 @@ def _to_product(p: dict) -> Product:
         rating=_num(p.get("evaluate_rate")),
         sales=int(_num(p.get("lastest_volume"))),
         link=p.get("promotion_link") or p.get("product_detail_url", ""),
+        images=_gallery(p),
     )
 
 

@@ -46,6 +46,8 @@ class Config:
     brand_color: str = os.getenv("BRAND_COLOR", "#E60012")
     groups_link: str = os.getenv("GROUPS_LINK", "")
     card_photo_box: tuple | None = _box("CARD_PHOTO_BOX")
+    card_thumbs: bool = os.getenv("CARD_THUMBS", "true").lower() == "true"
+    extra_photos: int = _int("EXTRA_PHOTOS", 0)
     card_show_price: bool = os.getenv("CARD_SHOW_PRICE", "true").lower() == "true"
 
     use_ai_copy: bool = os.getenv("USE_AI_COPY", "false").lower() == "true"

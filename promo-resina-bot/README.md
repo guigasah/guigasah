@@ -75,7 +75,15 @@ python -m promobot run           # busca e posta as melhores promoções agora
 python -m promobot loop          # fica rodando e posta a cada INTERVAL_MINUTES
 python -m promobot link "https://pt.aliexpress.com/item/1005006123456789.html" --cupom BRASIL10
                                  # posta um achado seu, já com link de afiliado
+python -m promobot link "https://s.click.aliexpress.com/e/_c3cDJ83V" --preco 79.90 --preco-antigo 139.90
+                                 # sem API: título e fotos são lidos da página do anúncio
 ```
+
+### Fotos do anúncio
+
+O agente usa as fotos do próprio anúncio. Com a API, elas vêm da galeria do produto. Sem a API, ele lê a
+página do link. A primeira foto vai em destaque na arte e até 3 outras aparecem como miniaturas
+(`CARD_THUMBS`). Com `EXTRA_PHOTOS=2`, ele também envia 2 fotos extras do anúncio logo depois do post.
 
 Comece com `WHATSAPP_PROVIDER=dryrun`: ele só salva arte + legenda em `output/` para você conferir.
 Quando estiver bom, mude para `evolution` e coloque os destinos em `WHATSAPP_TARGETS`.

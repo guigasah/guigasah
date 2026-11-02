@@ -8,6 +8,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from .aliexpress import Product
 from .config import config
+from .scraper import HEADERS
 
 W, H, BAR = 1000, 900, 120
 FONT_BOLD = [
@@ -38,12 +39,25 @@ def _brl(v: float) -> str:
     return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-def _photo(p: Product, box: tuple[int, int]):
+def _open(src: str) -> Image.Image:
+    if os.path.exists(src):
+        return Image.open(src).convert("RGB")
+    resp = requests.get(src, headers=HEADERS, timeout=30)
+    resp.raise_for_status()
+    return Image.open(io.BytesIO(resp.content)).convert("RGB")
+
+
+def download_photo(src: str, path: str) -> str:
+    img = _open(src)
+    img.thumbnail((1200, 1200))
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    img.save(path, "JPEG", quality=90)
+    return path
+
+
+def _photo(src: str, box: tuple[int, int]):
     try:
-        if os.path.exists(p.image):
-            photo = Image.open(p.image).convert("RGB")
-        else:
-            photo = Image.open(io.BytesIO(requests.get(p.image, timeout=30).content)).convert("RGB")
+        photo = _open(src)
         photo.thumbnail(box)
         return photo
     except Exception as e:
@@ -59,7 +73,7 @@ def _framed_card(p: Product) -> Image.Image:
     )
     d = ImageDraw.Draw(img)
     price_h = 120 if config.card_show_price else 0
-    photo = _photo(p, (x2 - x1, y2 - y1 - price_h))
+    photo = _photo(p.image or (p.images[:1] or [''])[0], (x2 - x1, y2 - y1 - price_h))
     if photo:
         img.paste(photo, (x1 + (x2 - x1 - photo.width) // 2, y1 + (y2 - y1 - price_h - photo.height) // 2))
     if config.card_show_price:
@@ -112,9 +126,21 @@ def make_card(p: Product, path: str) -> str:
     d.text((W - 25 - d.textlength(config.brand_hashtag, font=f_tag), 132), config.brand_hashtag, font=f_tag, fill=color)
 
     # foto do produto
-    photo = _photo(p, (520, 520))
+    photo = _photo(p.image or (p.images[:1] or [""])[0], (520, 520))
     if photo:
         img.paste(photo, ((W - photo.width) // 2, 170 + (520 - photo.height) // 2))
+
+    # miniaturas de outras fotos do anúncio na coluna da esquerda
+    if config.card_thumbs:
+        y = 185
+        for src in p.images[1:4]:
+            thumb = _photo(src, (150, 150))
+            if not thumb:
+                continue
+            x = 45 + (150 - thumb.width) // 2
+            img.paste(thumb, (x, y + (150 - thumb.height) // 2))
+            d.rounded_rectangle([40, y - 5, 200, y + 155], radius=10, outline="#dddddd", width=2)
+            y += 170
 
     # preço + selo de desconto
     _centered(d, W / 2, 705, _brl(p.price), _font(56), color)
