@@ -10,6 +10,11 @@ def _list(name: str, default: str = "") -> list[str]:
     return [x.strip() for x in os.getenv(name, default).split(",") if x.strip()]
 
 
+def _box(name: str):
+    parts = _list(name)
+    return tuple(int(x) for x in parts) if len(parts) == 4 else None
+
+
 def _int(name: str, default: int) -> int:
     return int(os.getenv(name, default))
 
@@ -35,11 +40,13 @@ class Config:
     targets: list[str] = field(default_factory=lambda: _list("WHATSAPP_TARGETS"))
     delay_between_targets: int = _int("DELAY_BETWEEN_TARGETS", 8)
 
-    brand_name: str = os.getenv("BRAND_NAME", "RESINA BARATA")
-    brand_site: str = os.getenv("BRAND_SITE", "seusite.com.br")
-    brand_hashtag: str = os.getenv("BRAND_HASHTAG", "#resinabarata")
+    brand_name: str = os.getenv("BRAND_NAME", "FORJA NERD")
+    brand_site: str = os.getenv("BRAND_SITE", "forjanerd.com.br")
+    brand_hashtag: str = os.getenv("BRAND_HASHTAG", "#forjanerd")
     brand_color: str = os.getenv("BRAND_COLOR", "#E60012")
     groups_link: str = os.getenv("GROUPS_LINK", "")
+    card_photo_box: tuple | None = _box("CARD_PHOTO_BOX")
+    card_show_price: bool = os.getenv("CARD_SHOW_PRICE", "true").lower() == "true"
 
     use_ai_copy: bool = os.getenv("USE_AI_COPY", "false").lower() == "true"
     ai_model: str = os.getenv("AI_MODEL", "claude-opus-5-5")

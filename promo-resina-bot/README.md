@@ -53,7 +53,18 @@ pip install -r requirements.txt
 cp .env.example .env    # preencha suas chaves
 ```
 
-Opcional: coloque seu logo em `assets/logo.png`; ele aparece no canto direito da faixa.
+### Identidade visual (Forja Nerd)
+
+Coloque suas artes em `assets/`:
+
+| Arquivo | Uso |
+|---|---|
+| `assets/moldura.png` | **Arte pronta da marca** (faixas, logo, redes sociais). O agente cola a foto do produto, o preço e o selo de desconto dentro dela, como o Nintendo Barato faz. |
+| `assets/logo.png` | Logo no canto da faixa (só é usado quando não há moldura) |
+| `assets/fonte.ttf` | Fonte da marca para preço e textos |
+
+Use `CARD_PHOTO_BOX=x1,y1,x2,y2` no `.env` para dizer em que área da moldura a foto entra. Use `CARD_SHOW_PRICE=false`
+se a sua arte não tiver espaço para o preço. Cor, nome, site e hashtag ficam em `BRAND_*`.
 
 ## 3. Uso
 
