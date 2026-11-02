@@ -5,7 +5,7 @@ from .aliexpress import Product
 from .config import config
 
 NOISE = re.compile(
-    r"\b(19[0-9]{2}|20[0-9]{2}|new|novo|hot|sale|free shipping|frete grátis|for|para)\b", re.I
+    r"\b(19[0-9]{2}|20[0-9]{2}|new|novo|hot|sale|free shipping|frete grátis)\b", re.I
 )
 
 

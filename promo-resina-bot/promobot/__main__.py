@@ -4,6 +4,7 @@ Uso:
   python -m promobot run                     # busca e posta as melhores promoções agora
   python -m promobot loop                    # roda sozinho a cada INTERVAL_MINUTES
   python -m promobot link URL [--cupom X]    # posta um produto específico (seu achado manual)
+      [--titulo T --preco 99.9 --preco-antigo 150 --imagem foto.jpg]   # sem precisar da API
   python -m promobot grupos                  # lista os IDs dos grupos do seu WhatsApp
   python -m promobot demo                    # gera um post de exemplo sem precisar de chaves
 """
@@ -12,6 +13,8 @@ import re
 import time
 from datetime import datetime
 from pathlib import Path
+
+import requests
 
 from . import aliexpress, copywriter, storage, whatsapp
 from .aliexpress import Product
@@ -63,15 +66,39 @@ def loop() -> None:
         time.sleep(config.interval_minutes * 60)
 
 
-def post_link(url: str, coupon: str | None) -> None:
+def _product_id(url: str) -> str | None:
     m = re.search(r"/item/(\d+)", url) or re.search(r"(\d{10,})", url)
-    if not m:
-        raise SystemExit("Não achei o ID do produto no link. Use o link completo .../item/123456.html")
-    p = aliexpress.product_details(m.group(1))
+    if m:
+        return m.group(1)
+    try:  # link curto (s.click.aliexpress.com / a.aliexpress.com): segue o redirecionamento
+        final = requests.get(url, allow_redirects=True, timeout=20).url
+    except requests.RequestException as e:
+        print(f"[link] não consegui abrir {url}: {e}")
+        return None
+    m = re.search(r"/item/(\d+)", final) or re.search(r"productIds?=(\d+)", final)
+    return m.group(1) if m else None
+
+
+def post_link(url: str, coupon: str | None, manual: dict) -> None:
+    """Posta um achado seu. Com --titulo e --preco não precisa da API."""
+    if manual.get("title") and manual.get("price"):
+        p = Product(
+            id=_product_id(url) or re.sub(r"\W+", "", url)[-10:], title=manual["title"], image=manual.get("image") or "",
+            price=manual["price"], original_price=manual.get("original_price") or 0,
+            discount=0, rating=0, sales=0, link=url,
+        )
+        if p.original_price > p.price:
+            p.discount = round(100 - p.price / p.original_price * 100)
+        post(p, coupon)
+        return
+    pid = _product_id(url)
+    if not pid:
+        raise SystemExit("Não achei o ID do produto. Informe --titulo e --preco para postar manualmente.")
+    p = aliexpress.product_details(pid)
     if not p:
         raise SystemExit("Produto não encontrado na API de afiliados (pode não ter comissão).")
-    if not p.link:
-        p.link = aliexpress.affiliate_link(url)
+    # link que você já gerou continua sendo o usado (mantém seu rastreio)
+    p.link = url if "s.click.aliexpress.com" in url else (p.link or aliexpress.affiliate_link(url))
     post(p, coupon)
 
 
@@ -98,6 +125,10 @@ def main() -> None:
     lk = sub.add_parser("link")
     lk.add_argument("url")
     lk.add_argument("--cupom")
+    lk.add_argument("--titulo", help="título do produto (modo manual, sem API)")
+    lk.add_argument("--preco", type=float, help="preço atual em R$")
+    lk.add_argument("--preco-antigo", type=float, help="preço sem desconto em R$")
+    lk.add_argument("--imagem", help="URL ou arquivo da foto do produto")
     args = ap.parse_args()
 
     if args.cmd == "run":
@@ -105,7 +136,10 @@ def main() -> None:
     elif args.cmd == "loop":
         loop()
     elif args.cmd == "link":
-        post_link(args.url, args.cupom)
+        post_link(args.url, args.cupom, {
+            "title": args.titulo, "price": args.preco,
+            "original_price": args.preco_antigo, "image": args.imagem,
+        })
     elif args.cmd == "grupos":
         for g in whatsapp.list_groups():
             print(f"{g.get('id')}  {g.get('subject')}")
